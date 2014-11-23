@@ -1,163 +1,131 @@
+[Poprzedni cheatsheet](https://github.com/hussar-academy/pwr-workshop-3/blob/master/cheatsheet.md)
+
 # Slim
-```slim
-div ng-controller="KittensCtrl"
-  span
-    | {{ kittensCount }}
-```
 
-Wykorzystanie controllera `KittensCtrl`. Wszystko, co znajdzie się w tym `div`ie będzie miało do niego dostęp.
-
-Wąsy `{{ … }}` służą do wywołania Angulara w kodzie HTML. W tym przypadku wyświetlą zawartość zmiennej `$scope.kittensCount` z controllera.
+#### Linki do stanów (routes)
 
 ```slim
-div ng-repeat="cat in kittens"
-  | {{ cat.name }}
+a ui-sref="kittens" All the kittens
+
+# We would actually never write code like this:
+a ui-sref="kitten({ id: 5 })" Kitten with the id == 5
+
+# Instead, we would need the kitten object
+a ui-sref="kitten({ id: kitten.id })" Current kitten
 ```
-
-`ng-repeat` jest pętlą iterujacą po tablicy `kittens`.
-
-```slim
-div ng-show="showKitten(cat.id)"
-  …
-div ng-hide="!showKitten(cat.id)"
-  …
-```
-
-Pokazywanie / ukrywanie elementu na podstawie wyrażenia logicznego.
-
-```slim
-button type="button" ng-click="vote()"
-```
-
-Wywołanie akcji `$scope.vote` zdefiniowanej w controllerze.
-
-```slim
-form ng-submit="create()"
-  …
-  input type="submit" value="Submit"
-```
-Wysłanie formularza (submit) wywoła akcję `$scope.create` zdefiniowaną w controllerze.
 
 # AngularJS
-```coffee
-# app/assets/javascripts/controllers/kittens-ctrl.coffee
-angular.module('MyApp').controller 'KittensCtrl', ($scope, $http) ->
-  $scope.kittensCount = 2
-```
 
-Utworzenie controllera w Angularze. Nazwa modułu `MyApp` musi zgadzać się z nazwą podaną w dyrektywie `ng-app` w `app/views/layouts/application.html.slim`
+#### Zdefiniowane controllera w `state`
 
 ```coffee
-# app/assets/javascripts/controllers/kittens-ctrl.coffee
-$scope.newKitten = {}
-$scope.create = ->
-  $http.post("/api/kittens", { kittens: $scope.newKitten }).success (response) ->
-    …
+# app/assets/javascripts/routes.coffee
+.state 'kittens',
+  url: '/kittens'
+  controller: 'KittensCtrl'
+  templateUrl: '/assets/kittens.html'
 ```
-Utworzenie akcji w controllerze Angularowym. Przypisanie zmiennej lub funkcji do obiektu `$scope` sprawi, że widok będzie miał do tego dostęp.
 
-Funkcja przekazana w parametrze do `success` będzie wywołana po tym, jak serwer zwróci odpowiedź pozytywną.
+Dzięki temu cały stan (wszystko wewnątrz `kittens.html`) dostaje dostęp do tego controllera.
+
+#### Wydzielenie serwisu do komunikacji z API
+
+```coffee
+# app/assets/javascripts/services/kitten.coffee
+angular.module('KittenApp').service 'Kitten', ($http) ->
+  base = '/api/kittens'
+  index: ->
+    $http.get(base)
+  create: (kitten) ->
+    # This will send POST request with `kitten` parameter which contains this object
+    $http.post(base, kitten: kitten)
+
+# app/assets/javascripts/controllers/kittens-ctrl.coffee
+#                We need to inject this service to controller ▼
+angular.module('KittenApp').controller 'KittenCtrl', ($scope, Kitten) ->
+```
+
+Wtedy w controllerze możemy zamienić: ~~`$http.get('/api/kittens')`~~ na `Kitten.index()`
+
+#### Wykorzystanie resolvera
+
+```coffee
+# app/assets/javascripts/routes.coffee
+.state 'kittens',
+  url: '/kittens'
+  controller: 'KittensCtrl'
+  resolve:
+    # Note that we inject and use our Kitten service
+    kittens: (Kitten) ->
+      Kitten.index()
+  templateUrl: '/assets/kittens.html'
+```
+
+Wtedy do controllera `KittensCtrl` możemy wstrzyknąć *(ugh)* zmienną, którą resolvujemy:
+
+```coffee
+# app/assets/javascripts/controllers/kittens-ctrl.coffee
+#                                      These are our resolved kittens ▼
+angular.module('KittenApp').controller 'KittenCtrl', ($scope, Kitten, kittens) ->
+```
+
+Dzięki temu możemy zamienić:
+
+```coffee
+Kitten.index().success (response) ->
+  $scope.kittens = response
+```
+
+na
+
+```coffee
+# Note that we must use kittens.data, not just kittens!
+$scope.kittens = kittens.data
+```
+
+#### Stan (route) przyjmujący parametr
+
+```coffee
+.state 'kitten',
+  url: '/kitten/:id'
+  resolve:
+    kitten: ($stateParams, Kitten) ->
+      Kitten.show($stateParams.id)
+  …
+```
+
+Dzięki temu możemy przejść w przeglądarce pod adres `/kitten/5` i uzyskać kota o id == 5.
+
+Zwróć uwagę na wykorzystanie serwisu `$stateParams`. Możemy go wstrzyknąć i wykorzystać również w innych miejscach aplikacji (na przykład w controllerze).
+
+Pamiętaj również, że możemy przekazać więcej niż 1 parametr.
 
 # Ruby on Rails
+
+#### Wykorzystanie `member` i `collection` w routes'ach
+
+Możemy zamienić
+
 ```ruby
-# app/controllers/api/kittens_controller.rb
-class Api::KittensController < ApplicationController
-  def index
-    …
+resources :kittens
+post 'kittens/:id/buy', to: 'kittens#buy'
+get 'kittens/ginger', to: 'kittens#ginger'
+```
+
+na:
+
+``` ruby
+resources :kittens do
+  member do
+    post 'vote'
+  end
+  collection do
+    get 'ginger'
   end
 end
 ```
 
-Definicja controllera `KittensController` w module `Api` z akcją `index`.
+Dzięki takiej wersji jest mniej pisania i trochę więcej magii (co nie zawsze jest dobre, ale zawsze warto o tym wiedzieć :) )
 
-```ruby
-# config/routes.rb
-namespace :api do
-  get '/kittens', to: 'kittens#index'
-end
-```
-
-Wywołanie akcji `index` po wejściu (wysłaniu requesta GET) na ścieżkę `/api/kittens`.
-
-```ruby
-namespace :api do
-  post 'kittens/:id/vote', to: 'kittens#vote'
-end
-```
-
-Wywołanie akcji `vote` po wysłaniu requesta POST razem z przekazaniem `id` kotka – przykładowa ścieżka: `/api/kittens/1/vote`
-
-```ruby
-# config/routes.rb
-namespace :api do
-  resources :kittens
-end
-```
-
-Automatycznie zdefiniowanie ścieżek do akcji `index`, `show`, `create`, `update,` `destroy` w controllerze.
-
-```ruby
-# app/controllers/api/kittens_controller.rb
-def index
-  render json: Dig.all
-end
-```
-
-Zwrócenie json-a przez akcję w controllerze.
-
-```ruby
-# app/controllers/api/kittens_controller.rb
-def do_something_with_kitten
-  kitten = Kitten.find(params[:id])
-  …
-end
-```
-
-Akcje w controllerach mają dostęp do globalnej zmiennej `params`, która jest Hashem.
-
-```ruby
-# app/models/dig.rb
-def as_json(opts={})
-  super.merge(rating: votes.sum(:amount))
-end
-```
-
-Dodanie atrybutu `rating` do obiektów `Diga` wysyłanych JSON-em.
-
-# Debugowanie
-## Coffeescript
-```coffee
-console.log variable
-```
-
-Wyświetlenie zawartości zmiennej w konsoli przeglądarki.
-
-```coffee
-debugger
-```
-
-Zostawienie tego w kodzie JavaScriptowym (lub CoffeeScriptowym) spoowoduje zatrzymanie wykonywania w tym miejscu i da dostęp do aktualnego kontekstu.
-
-## Rails
-```
-Rails.logger.info variable.inspect
-```
-
-Wyświetlenie zawartości zmiennej w logu serwera Railsowego (który również jest zapisywany w folderze `log/development.log`)
-
-```
-binding.pry
-```
-
-Debugger dla Railsów. Zatrzyma wykonywanie serwera i da dostęp do aktualnego kontekstu z poziomu terminala, gdzie uruchomiliśmy nasz serwer.
-
-# Linki
-
-- [$scope](https://docs.angularjs.org/guide/scope)
-- [$http](https://docs.angularjs.org/api/ng/service/$http)
-- [Promises](https://thinkster.io/egghead/promises/)
-- [Ruby Modules](http://www.tutorialspoint.com/ruby/ruby_modules.htm)
-- [Ruby Array](http://www.ruby-doc.org/core-2.1.5/Array.html)
-- [Ruby Hash](http://www.ruby-doc.org/core-2.1.4/Hash.html)
-- [Zebrane materiały do nauki (nasz Hackpad)](https://monterail.hackpad.com/KNTAW-Zebrane-materiay-do-nauki-URBz0gV1GWI)
+Przy okazji: [co robi `resources :kittens`](https://twitter.com/andrzejkrzywda/status/536479476851695616)
 
