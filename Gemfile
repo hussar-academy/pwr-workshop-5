@@ -6,6 +6,7 @@ gem 'mysql2', '~> 0.3.16'
 gem 'envied', '~> 0.8.1'
 gem 'sqlite3', '~> 1.3.9'
 gem 'pg', '~> 0.17.1'
+gem 'bcrypt', '~> 3.1.7'
 
 gem 'coffee-rails', '~> 4.0.1'
 gem 'sass-rails', '~> 4.0.3'
@@ -20,6 +21,6 @@ gem 'rails-assets-ui-router', '~> 0.2.9'
 group :development, :test do
   gem 'factory_girl_rails', '~> 4.4.1'
   gem 'rspec-rails', '~> 3.0.2'
-  gem 'pry', '~> 0.10.1'
+  gem 'pry-rails', '~> 0.3.2'
 end
 
