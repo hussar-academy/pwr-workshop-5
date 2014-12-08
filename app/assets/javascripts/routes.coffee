@@ -1,4 +1,6 @@
-angular.module('DigApp').config ($stateProvider, $urlRouterProvider) ->
+angular.module('DigApp').config ($stateProvider, $urlRouterProvider, $locationProvider) ->
+  $locationProvider.html5Mode(false)
+
   $urlRouterProvider.otherwise '/'
 
   $stateProvider
