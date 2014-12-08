@@ -1,7 +1,13 @@
 DigApp = angular.module 'DigApp', ['ui.router']
 
 DigApp.config ($locationProvider) ->
-  $locationProvider.html5Mode true
+  $locationProvider.html5Mode false
+
+DigApp.config ($httpProvider) ->
+  $httpProvider.defaults.headers.common['X-CSRF-Token'] =
+    angular.element(
+      document.querySelector('meta[name=csrf-token]')
+    ).attr('content')
 
 DigApp.config ($provide, $httpProvider, Rails) ->
   $provide.factory 'railsAssetsInterceptor', ->
