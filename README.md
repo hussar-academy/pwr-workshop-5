@@ -8,8 +8,6 @@ This application is the changed verion of [pwr-workshop-4](https://github.com/hu
 
 Assignments to solve.
 
-![directories](directories.png)
-
 # Feedback
 
 We would love your feedback after the workshop. It's very important to us, so we can improve for our next meetings :)
