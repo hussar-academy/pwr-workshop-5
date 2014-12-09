@@ -1,4 +1,6 @@
 class Api::DigsController < ApplicationController
+  before_action :authorize_api
+
   def index
     render json: Dig.all
   end
