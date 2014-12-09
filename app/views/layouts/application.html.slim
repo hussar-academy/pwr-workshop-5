@@ -4,8 +4,7 @@ html ng-app="DigApp"
     base href="/"
     title KNTAW Digg
     = stylesheet_link_tag 'application', media: 'all'
-    /* Beware, CSRF is disabled */
-    /* = csrf_meta_tags */
+    = csrf_meta_tags
   body
     - if current_user
       = link_to "(#{current_user.email}) Sign out", sign_out_url
@@ -26,3 +25,4 @@ html ng-app="DigApp"
         = content_tag :div, msg, id: "flash_#{name}"
 
       = yield
+
