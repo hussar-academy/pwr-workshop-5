@@ -8,6 +8,10 @@ This application is the changed verion of [pwr-workshop-4](https://github.com/hu
 
 Assignments to solve.
 
+# [Cheatsheet](https://github.com/hussar-academy/pwr-workshop-5/blob/master/cheatsheet.md)
+
+Cheatsheet with Rails form
+
 # Feedback
 
 We would love your feedback after the workshop. It's very important to us, so we can improve for our next meetings :)
