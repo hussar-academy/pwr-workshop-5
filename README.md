@@ -12,6 +12,8 @@ Assignments to solve.
 
 Cheatsheet with Rails form
 
+# [Video](https://www.youtube.com/watch?v=-9x1z2HCOUI)
+
 # Feedback
 
 We would love your feedback after the workshop. It's very important to us, so we can improve for our next meetings :)
