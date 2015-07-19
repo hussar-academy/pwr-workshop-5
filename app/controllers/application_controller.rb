@@ -8,8 +8,12 @@ class ApplicationController < ActionController::Base
 
   def current_user
     return @current_user if defined?(@current_user)
-    @current_user = User.find_or_create_by!(
-      email: 'user@example.com'
-    )
+    @current_user = User.find_by(id: session[:current_user_id])
+  end
+
+  def authorize_api
+    unless current_user
+      render json: { error: 'Not Authorized Access' }, status: 403
+    end
   end
 end

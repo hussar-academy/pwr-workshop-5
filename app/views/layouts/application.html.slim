@@ -4,11 +4,11 @@ html ng-app="DigApp"
     base href="/"
     title KNTAW Digg
     = stylesheet_link_tag 'application', media: 'all'
-    /* Beware, CSRF is disabled */
-    /* = csrf_meta_tags */
+    = csrf_meta_tags
   body
-
-    - if true # here you should check if user is signed in
+    - if current_user
+      = link_to "(#{current_user.email}) Sign out", sign_out_url
+      '  |
       a href="/" INDEX
       hr
       div ui-view=""
@@ -16,6 +16,13 @@ html ng-app="DigApp"
       = javascript_include_tag 'application'
       = js_env
     - else
-      = yield
+      = link_to 'Sign in', sign_in_path
+      '  |
+      = link_to 'Sign up', sign_up_path
 
+      hr
+      - flash.each do |name, msg|
+        = content_tag :div, msg, id: "flash_#{name}"
+
+      = yield
 
